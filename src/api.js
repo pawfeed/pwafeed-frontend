@@ -57,4 +57,24 @@ export const unlikePost = async (postId, userId) => {
   return await res.text();
 }
 
+export const getComments = async(postId) => {
+  const res = await fetch(
+    `http://localhost:8081/comments/${postId}`);
+    return res.json();
+};
 
+export const addComment = async (postId, userId, text) => {
+  const res = await fetch("http://localhost:8081/comments", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      postId,
+      userId,
+      text,
+    }),
+  });
+
+  return res.json();
+};
