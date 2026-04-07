@@ -57,6 +57,11 @@ export const unlikePost = async (postId, userId) => {
   return await res.text();
 }
 
+export const getFeed = async (userId) =>{
+  const res = await fetch(`http://localhost:8081/posts/feed?userId=${userId}`);
+  return res.json()
+}
+
 export const getComments = async(postId) => {
   const res = await fetch(
     `http://localhost:8081/comments/${postId}`);
@@ -75,6 +80,8 @@ export const addComment = async (postId, userId, text) => {
       text,
     }),
   });
+
+
 
   return res.json();
 };
