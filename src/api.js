@@ -1,5 +1,26 @@
 const BASE_URL = "http://localhost:8081";
 
+export const checkFollow = async (userId, followerId) => {
+  const res = await fetch(
+    `http://localhost:8081/users/${userId}/is-following?followerId=${followerId}`
+  );
+  return res.json();
+};
+
+export const follow = async (userId, followerId) => {
+  await fetch(
+    `http://localhost:8081/users/${userId}/follow?followerId=${followerId}`,
+    { method: "POST" }
+  );
+};
+
+export const unfollow = async (userId, followerId) => {
+  await fetch(
+    `http://localhost:8081/users/${userId}/unfollow?followerId=${followerId}`,
+    { method: "DELETE" }
+  );
+};
+
 export const createPost = async (file, caption, userId) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -79,7 +100,10 @@ export const addComment = async (postId, userId, text) => {
       userId,
       text,
     }),
+  
   });
+
+
 
 
 
