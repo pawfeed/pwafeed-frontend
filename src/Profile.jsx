@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { checkFollow, follow, unfollow } from "./api";
 import {
   getProfile,
   createPost,
@@ -24,10 +25,21 @@ function Profile() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // LOAD PROFILE
   useEffect(() => {
     getProfile(16).then((data) => setProfile(data));
   }, []);
 
+  // CHECK FOLLOW STATUS
+  useEffect(() => {
+    if (!profile) return;
+
+    checkFollow(profile.user.id, 16).then(setIsFollowing);
+  }, [profile]);
+
+  // LOAD LIKES
   useEffect(() => {
     if (!profile) return;
 
@@ -38,6 +50,7 @@ function Profile() {
     });
   }, [profile]);
 
+  // LIKE FUNCTION
   const handleLike = async (postId) => {
     try {
       if (likedPosts[postId]) {
@@ -65,9 +78,12 @@ function Profile() {
     }
   };
 
+  // LOADING GUARD (VERY IMPORTANT)
   if (!profile) {
     return <h1 className="text-center mt-10">Loading...</h1>;
   }
+
+  const userId = profile.user.id;
 
   return (
     <div className="max-w-3xl mx-auto px-4">
@@ -91,8 +107,25 @@ function Profile() {
         <p className="text-gray-500">{profile.user.bio}</p>
 
         <div className="flex gap-3">
-          <button className="bg-gray-200 px-4 py-1 rounded">Follow</button>
-          <button className="bg-gray-200 px-4 py-1 rounded">Message</button>
+          <button
+            onClick={async () => {
+              if (isFollowing) {
+                await unfollow(userId, 16);
+                setIsFollowing(false);
+              } else {
+                await follow(userId, 16);
+                setIsFollowing(true);
+              }
+            }}
+            className="px-4 py-1 border rounded"
+          >
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
+
+          <button className="bg-gray-200 px-4 py-1 rounded">
+            Message
+          </button>
+
           <button
             onClick={() => setShowModal(true)}
             className="bg-black text-white px-4 py-1 rounded"
@@ -118,7 +151,10 @@ function Profile() {
               src={post.imageUrl}
               className="w-full aspect-square object-cover"
               alt=""
-              onDoubleClick={() => handleLike(post.id)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                handleLike(post.id);
+              }}
             />
 
             <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 flex items-center justify-center text-white">
@@ -130,9 +166,14 @@ function Profile() {
 
       {/* UPLOAD MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-          <div className="bg-white p-4 w-[400px] rounded">
-
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="bg-white p-4 w-[400px] rounded"
+            onClick={(e) => e.stopPropagation()}
+          >
             <input
               type="file"
               onChange={(e) => {
@@ -168,19 +209,23 @@ function Profile() {
             >
               Share
             </button>
-
           </div>
         </div>
       )}
 
       {/* POST MODAL */}
       {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center">
-          <div className="bg-white w-[700px] flex">
-
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center"
+          onClick={() => setSelectedPost(null)}
+        >
+          <div
+            className="bg-white w-[700px] flex"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={selectedPost.imageUrl}
-              className="w-1/2"
+              className="w-1/2 object-cover"
               alt=""
             />
 
@@ -221,12 +266,14 @@ function Profile() {
                 </button>
               </div>
 
-              <button onClick={() => setSelectedPost(null)}>
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="mt-2 border p-1"
+              >
                 Close
               </button>
 
             </div>
-
           </div>
         </div>
       )}
